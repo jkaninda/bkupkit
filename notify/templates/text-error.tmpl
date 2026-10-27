@@ -1,0 +1,7 @@
+🔴 Backup failed – {{.DatabaseName}}
+
+- Database: {{.DatabaseName}}
+- Date: {{.EndTime}}
+{{- if .BackupReference}}
+- Reference: {{.BackupReference}}{{end}}
+- Error: {{.Error}}

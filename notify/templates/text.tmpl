@@ -1,0 +1,14 @@
+✅ Backup successful – {{.Database}}
+
+- Database: {{.Database}}
+- File: {{.File}}
+- Duration: {{.Duration}}
+- Storage: {{.Storage}}
+- Location: {{.BackupLocation}}
+- Size: {{.BackupSize}}
+{{- if .Encryption}}
+- Encryption: {{.Encryption}}{{end}}
+{{- if .Pruned}}
+- Retention removed: {{len .Pruned}} old backup(s){{end}}
+{{- if .BackupReference}}
+- Reference: {{.BackupReference}}{{end}}
