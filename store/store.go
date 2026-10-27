@@ -27,7 +27,6 @@ SOFTWARE.
 package store
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"strconv"
@@ -150,8 +149,10 @@ func Open(v *config.Values) (*Location, error) {
 		return nil, fmt.Errorf("%s storage: %w", kind, err)
 	}
 	s, err := gostorage.NewStorage(gostorage.StorageType(kind), cfg)
-	if errors.Is(err, gostorage.ErrNoKnownHosts) {
-		return nil, fmt.Errorf("%w; set %s, or %s=true to skip verification (insecure)", err, config.SFTPKnownHosts, config.SFTPIgnoreHostKey)
+
+	if err != nil && strings.Contains(err.Error(), "no known_hosts file available") {
+		return nil, fmt.Errorf("sftp: no known_hosts file available for host key verification; set %s, or %s=true to skip verification (insecure)",
+			config.SFTPKnownHosts, config.SFTPIgnoreHostKey)
 	}
 	if err != nil {
 		return nil, err
