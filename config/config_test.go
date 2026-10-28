@@ -49,7 +49,7 @@ func TestPrecedenceAndAliases(t *testing.T) {
 		"FTP_HOST_NAME":     "ftp.example",
 		"SSH_HOST":          "sftp.example",
 		"SSH_IDENTIFY_FILE": "/keys/id",
-		"DB_USER":           "legacy-user",
+		"DB_USERNAME":       "compat-user",
 		"AWS_REGION":        "",
 	}
 	v, err := r.Resolve(ResolveOptions{Env: env})
@@ -61,8 +61,8 @@ func TestPrecedenceAndAliases(t *testing.T) {
 		S3AccessKey: "new-key", // canonical beats alias
 		S3Bucket:    "legacy-bucket",
 		FTPHost:     "ftp.example", // FTP_HOST_NAME fallback (1.x validated the old name)
-		DBUsername:  "legacy-user",
-		S3Region:    "us-east-1", // default; empty env is ignored
+		DBUser:      "compat-user", // DB_USERNAME is still read
+		S3Region:    "us-east-1",   // default; empty env is ignored
 		Storage:     "local",
 	}
 	for k, want := range cases {
@@ -194,5 +194,29 @@ func TestSSHNamesAreNotRead(t *testing.T) {
 	}
 	if v.Has(SFTPHost) || v.Has(RemotePath) {
 		t.Fatalf("SSH_* names must not be read: host=%q path=%q", v.String(SFTPHost), v.String(RemotePath))
+	}
+}
+
+func TestDBUserNames(t *testing.T) {
+	r := testRegistry()
+	v, _ := r.Resolve(ResolveOptions{Env: MapEnv{"DB_USER": "new", "DB_USERNAME": "old", "TARGET_DB_USERNAME": "tu"}})
+	if v.String(DBUser) != "new" || v.String(TargetDBUser) != "tu" {
+		t.Fatalf("DB_USER=%q TARGET_DB_USER=%q", v.String(DBUser), v.String(TargetDBUser))
+	}
+	// DB_USERNAME (what Miabi sets) is accepted without a deprecation warning.
+	v, _ = r.Resolve(ResolveOptions{Env: MapEnv{"DB_USERNAME": "old"}})
+	if v.String(DBUser) != "old" || len(v.Warnings) != 0 {
+		t.Fatalf("DB_USERNAME: %q warnings=%v", v.String(DBUser), v.Warnings)
+	}
+}
+
+func TestForJobOlderNames(t *testing.T) {
+	r := testRegistry()
+	v, _ := r.Resolve(ResolveOptions{Env: MapEnv{"DB_USERNAME_SHOP": "shop-user", "BLOG_DB_USERNAME": "blog-user", "DB_USER_WIKI": "wiki-user"}})
+	for job, want := range map[string]string{"shop": "shop-user", "blog": "blog-user", "wiki": "wiki-user"} {
+		j, err := v.ForJob(job, nil)
+		if err != nil || j.String(DBUser) != want {
+			t.Errorf("%s: DB_USER=%q err=%v, want %q", job, j.String(DBUser), err, want)
+		}
 	}
 }

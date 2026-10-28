@@ -137,7 +137,7 @@ const (
 	DBHost        = "DB_HOST"
 	DBPort        = "DB_PORT"
 	DBName        = "DB_NAME"
-	DBUsername    = "DB_USERNAME"
+	DBUser        = "DB_USER"
 	DBPassword    = "DB_PASSWORD"
 	DBSSLMode     = "DB_SSL_MODE"
 	DBSSLCA       = "DB_SSL_CA"
@@ -150,11 +150,16 @@ const (
 	TargetDBHost  = "TARGET_DB_HOST"
 	TargetDBPort  = "TARGET_DB_PORT"
 	TargetDBName  = "TARGET_DB_NAME"
-	TargetDBUser  = "TARGET_DB_USERNAME"
+	TargetDBUser  = "TARGET_DB_USER"
 	TargetDBPass  = "TARGET_DB_PASSWORD"
 	TargetDBSSL   = "TARGET_DB_SSL_MODE"
 	TargetDBSSLCA = "TARGET_DB_SSL_CA"
 )
+
+// DBUsername is the former name of DBUser.
+//
+// Deprecated: use DBUser.
+const DBUsername = DBUser
 
 // Groups used in docs and `config` output.
 const (
@@ -300,7 +305,7 @@ func RegisterDatabase(r *Registry, defaultPort string) {
 		Setting{Key: DBHost, Default: "localhost", Group: GroupDatabase, Usage: "Database host"},
 		Setting{Key: DBPort, Kind: Int, Default: defaultPort, Group: GroupDatabase, Usage: "Database port"},
 		Setting{Key: DBName, Flag: "dbname", Short: "d", Group: GroupDatabase, Usage: "Database name"},
-		Setting{Key: DBUsername, Aliases: []string{"DB_USER"}, Group: GroupDatabase, Usage: "Database user"},
+		Setting{Key: DBUser, Compat: []string{"DB_USERNAME"}, Group: GroupDatabase, Usage: "Database user"},
 		Setting{Key: DBPassword, Secret: true, Group: GroupDatabase, Usage: "Database password"},
 		Setting{Key: DBSSLMode, Group: GroupDatabase, Usage: "TLS mode"},
 		Setting{Key: DBSSLCA, Group: GroupDatabase, Usage: "CA certificate file"},
@@ -313,7 +318,7 @@ func RegisterDatabase(r *Registry, defaultPort string) {
 		Setting{Key: TargetDBHost, Group: GroupDatabase, Usage: "migrate: target host"},
 		Setting{Key: TargetDBPort, Kind: Int, Default: defaultPort, Group: GroupDatabase, Usage: "migrate: target port"},
 		Setting{Key: TargetDBName, Group: GroupDatabase, Usage: "migrate: target database"},
-		Setting{Key: TargetDBUser, Group: GroupDatabase, Usage: "migrate: target user"},
+		Setting{Key: TargetDBUser, Compat: []string{"TARGET_DB_USERNAME"}, Group: GroupDatabase, Usage: "migrate: target user"},
 		Setting{Key: TargetDBPass, Secret: true, Group: GroupDatabase, Usage: "migrate: target password"},
 		Setting{Key: TargetDBSSL, Group: GroupDatabase, Usage: "migrate: target TLS mode"},
 		Setting{Key: TargetDBSSLCA, Group: GroupDatabase, Usage: "migrate: target CA certificate file"},

@@ -347,9 +347,15 @@ func (v *Values) lookup(s *Setting, overrides map[string]string, job string) (st
 			return strings.TrimSpace(val), "config file (" + job + ")", nil
 		}
 		jk := jobKey(job)
-		for _, name := range []string{s.Key + "_" + jk, jk + "_" + s.Key} {
-			if val, ok := v.env.Lookup(name); ok {
-				return val, "env " + name, nil
+		// Older names count too: 1.x configs use DB_USERNAME_<JOB> / <JOB>_DB_USERNAME.
+		for i, key := range append(append([]string{s.Key}, s.Aliases...), s.Compat...) {
+			for _, name := range []string{key + "_" + jk, jk + "_" + key} {
+				if val, ok := v.env.Lookup(name); ok {
+					if i > 0 && i <= len(s.Aliases) {
+						v.warn(fmt.Sprintf("%s is deprecated, use %s", name, s.Key+"_"+jk))
+					}
+					return val, "env " + name, nil
+				}
 			}
 		}
 	}
